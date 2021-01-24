@@ -1,7 +1,12 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "lexer.h"
 #include "util.h"
 
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -73,6 +78,12 @@ static bool consumeWhitspace(Lexer *lexer) {
     char c;
     do {
         c = next(lexer);
+        if (c == '\n') {
+            lexer->currLine++;
+            lexer->currCol = 1;
+        } else {
+            lexer->currCol++;
+        }
     } while (isspace(c) && c != EOF);
     fseek(lexer->file, -1, SEEK_CUR);
     if (c == EOF) {
@@ -86,6 +97,8 @@ static bool consumeComment(Lexer *lexer) {
     do {
         c = next(lexer);
     } while (c != '\n' && c != EOF);
+    lexer->currLine++;
+    lexer->currCol = 1;
     if (c == EOF) {
         return true;
     }
@@ -97,6 +110,8 @@ static bool consumeIdent(Lexer *lexer, Token *t, char first) {
     int i = 1; // already have 1 char
     int sizeOfStr = 32;
     char *str = malloc(sizeof(char) * sizeOfStr);
+    t->loc.line = lexer->currLine;
+    t->loc.start = lexer->currCol; 
     str[0] = first; 
     while (isalnum(c = next(lexer)) || c == '_') {
         str[i] = c;
@@ -105,11 +120,13 @@ static bool consumeIdent(Lexer *lexer, Token *t, char first) {
             sizeOfStr *= 2;
             str = realloc(str, sizeOfStr);
         }
+        lexer->currCol++;
     }
+    t->loc.end = lexer->currCol;
     str[i] = '\0';
     bool found = false;
     for (int i = 0; i < SIZEOF_ARRAY(keywords); ++i) {
-        if (strcmp(str, keywords[i]) == 0) {
+        if (strequ(str, keywords[i])) {
             t->type = KEYWORD;
             t->value = str;
             found = true;
@@ -131,6 +148,8 @@ static bool consumeString(Lexer *lexer, Token *t) {
     char c;
     int i = 0;
     int sizeOfStr = 32;
+    t->loc.line = lexer->currLine;
+    t->loc.start = lexer->currCol - 1;
     char *str = malloc(sizeof(char) * sizeOfStr);
     while (true) {
         c = next(lexer);
@@ -177,6 +196,8 @@ static char *relationOps = "<>";
 static bool consumeOperator(Lexer *lexer, Token *t, char first) {
     char *str = malloc(sizeof(char) * 3);
     t->type = INVALID;
+    t->loc.line = lexer->currLine;
+    t->loc.start = lexer->currCol;
     str[0] = first;
     for (int i = 0; i < strlen(singleCharBinOps); ++i) {
         if (first == singleCharBinOps[i]) {
@@ -241,8 +262,110 @@ static bool consumeOperator(Lexer *lexer, Token *t, char first) {
     return false;
 }
 
+static bool consumeNumber(Lexer *lexer, Token *t, char first) {
+    char c;
+    bool isInt = true;
+    int currIdx = 1;
+    int typeIdx = 0;
+    int sizeOfStr = 32;
+    char *str = malloc(sizeof(char) * sizeOfStr);
+    char *typeAnnotation = malloc(sizeof(char) * 5);
+    t->type = INVALID;
+    t->loc.line = lexer->currLine;
+    t->loc.start = lexer->currCol;
+    str[0] = first;
+    while ((c = next(lexer)) != EOF && (isdigit(c) || c == '.')) {
+        if (c == '.') {
+            isInt = false;
+        }
+        str[currIdx] = c;
+        ++currIdx;
+        lexer->currCol++;
+    }
+    str[currIdx] = '\0';
+    if (c != EOF && (c == 'i' || c == 'u' || c == 'f')) {
+        typeAnnotation[typeIdx] = c;
+        ++typeIdx;
+        while ((c = next(lexer)) != EOF && isdigit(c)) {
+            typeAnnotation[typeIdx] = c;
+            typeIdx++;
+            lexer->currCol++;
+        }
+        typeAnnotation[typeIdx] = '\0';
+
+        // TODO: Add handling of invalid definition
+        if (strequ(typeAnnotation, "i8")) {
+            t->type = INT8_LITERAL;
+            if (sscanf(str, "%" SCNd8, &t->i8) < 0) {
+                t->type = INVALID;
+            }
+        } else if (strequ(typeAnnotation, "i16")) {
+            t->type = INT16_LITERAL;
+            if (sscanf(str, "%" SCNd16, &t->i16) < 0) {
+                t->type = INVALID;
+            }
+        } else if (strequ(typeAnnotation, "i32")) {
+            t->type = INT32_LITERAL;
+            if (sscanf(str, "%" SCNd32, &t->i32) < 0) {
+                t->type = INVALID;
+            }
+        } else if (strequ(typeAnnotation, "i64")) {
+            t->type = INT64_LITERAL;
+            if (sscanf(str, "%" SCNd64, &t->i64) < 0) {
+                t->type = INVALID;
+            }
+        } else if (strequ(typeAnnotation, "u8")) {
+            t->type = UINT8_LITERAL;
+            if (sscanf(str, "%" SCNu8, &t->u8) < 0) {
+                t->type = INVALID;
+            }
+        } else if (strequ(typeAnnotation, "u16")) {
+            t->type = UINT16_LITERAL;
+            if (sscanf(str, "%" SCNu16, &t->u16) < 0) {
+                t->type = INVALID;
+            }
+        } else if (strequ(typeAnnotation, "u32")) {
+            t->type = UINT32_LITERAL;
+            if (sscanf(str, "%" SCNu32, &t->u32) < 0) {
+                t->type = INVALID;
+            }
+        } else if (strequ(typeAnnotation, "u64")) {
+            t->type = UINT64_LITERAL;
+            if (sscanf(str, "%" SCNu64, &t->u64) < 0) {
+                t->type = INVALID;
+            }
+        } else if (strequ(typeAnnotation, "f32")) {
+            t->type = FLOAT_LITERAL;
+            t->f32 = (float)atof(str);
+        } else if (strequ(typeAnnotation, "f64")) {
+            t->type = DOUBLE_LITERAL;
+            t->f64 = atof(str);
+        } else {
+            t->type = INVALID;
+        }
+        free(typeAnnotation);
+        if (c == EOF) { 
+            return true;
+        }
+    } else {
+        if (isInt) {
+            t->type = INT32_LITERAL;
+            if (sscanf(str, "%" SCNd32, &t->i32) < 0) {
+                t->type = INVALID;
+            }
+        } else {
+            t->type = DOUBLE_LITERAL;
+            t->f64 = atof(str);
+        }
+    }
+    if (c == EOF) {
+        return true;
+    }
+    return false;
+}
+
 Token *lex(Lexer *lexer) {
-    int i = 0;
+    int currIdx = 0;
     int numberTokens = 10;
     Token *toks = malloc(sizeof(Token) * numberTokens);
     Token *curr = toks;
@@ -250,15 +373,17 @@ Token *lex(Lexer *lexer) {
     consumeWhitspace(lexer);
     while ((c = next(lexer)) != EOF) {
         bool comment = false;
-        if (i >= numberTokens) {
+        if (currIdx >= numberTokens) {
             numberTokens *= 2;
             toks = realloc(toks, sizeof(Token) * numberTokens);
-            curr = toks + i;
+            curr = toks + currIdx;
         }
 
         if (c == EOF) {
             curr->type = EOF_TOKEN;
             break;
+        } else if (isdigit(c)) {
+            TEST_ADD_EOF(consumeNumber(lexer, curr, c), curr, true);
         } else if (c == '"') {
             TEST_ADD_EOF(consumeString(lexer, curr), curr, true);
         } else if (isalnum(c)) {
@@ -272,15 +397,24 @@ Token *lex(Lexer *lexer) {
         //printf("%s %d\n", curr->value, curr->type);
         TEST_ADD_EOF(consumeWhitspace(lexer), curr, true);
         if (!comment) {
-            ++i;
+            ++currIdx;
             ++curr;
         }
     }
-    return realloc(toks, sizeof(Token) * i);
+    ++currIdx;
+    toks = realloc(toks, sizeof(Token) * currIdx);
+    size_t len = strlen(lexer->filename);
+    for (int i = 0; i < currIdx; ++i) {
+        toks[i].loc.filename = malloc(sizeof(char) * len);
+        strcpy(toks[i].loc.filename, lexer->filename);
+    }
+    return toks;
 }
 
 Lexer *createLexer(const char *fname) {
     Lexer *lexer = malloc(sizeof(Lexer));
+    lexer->currLine = 1;
+    lexer->currCol = 1;
     lexer->filename = malloc(sizeof(char) * strlen(fname));
     strcpy(lexer->filename, fname);
     lexer->file = fopen(fname, "r");
@@ -300,3 +434,7 @@ void destroyLexer(Lexer *lex) {
         lex = NULL;
     }
 }
+
+#ifdef __cplusplus
+}
+#endif
