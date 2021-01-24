@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "lexer.h"
+#include "compiler/lexer.h"
 #include "util.h"
 
 int main(int argc, char *argv[]) {
@@ -12,20 +12,16 @@ int main(int argc, char *argv[]) {
         Token *toks = lex(lexer);
         Token *curr = toks;
         while (curr->type != EOF_TOKEN) {
-            ///printf("Line: %d:%d - '%s' // type: %s\n",
-            //    curr->loc.line, curr->loc.start,
-            //    curr->value, typeToStr(curr->type));
-            if (curr->type == INT32_LITERAL) {
-                printf("int 32 %d\n", curr->i32);
-            } else if (curr->type == UINT64_LITERAL) {
-                printf("uint 64 %llu\n", curr->u64);
-            } else if (curr->type == FLOAT_LITERAL) {
-                printf("float 32 %.1f\n", curr->f32);
-            } else if (curr->type == DOUBLE_LITERAL) {
-                printf("float 64 %.1f\n", curr->f64); 
+            if (curr->type > INT_START && curr->type < INT_END) {
+                printf("Line: %d:%d - %d // type: %s\n",
+                curr->loc.line, curr->loc.start,
+                curr->i32, typeToStr(curr->type));
             } else {
-                //printf("HERE\n");
+                printf("Line: %d:%d - '%s' // type: %s\n",
+                    curr->loc.line, curr->loc.start,
+                    curr->value, typeToStr(curr->type));
             }
+            if (curr->type == INVALID) break;
             ++curr;
         }
         destroyLexer(lexer);

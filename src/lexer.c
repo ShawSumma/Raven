@@ -2,7 +2,7 @@
 extern "C" {
 #endif
 
-#include "lexer.h"
+#include "compiler/lexer.h"
 #include "util.h"
 
 #include <ctype.h>
@@ -33,6 +33,10 @@ static char peek(Lexer *lex) {
 
 static char next(Lexer *lex) {
     return fgetc(lex->file);
+}
+
+static void backtrack(Lexer *lex, int n) {
+    fseek(lex->file, n, SEEK_CUR);
 }
 
 char *typeToStr(const TokenType tt) {
@@ -70,11 +74,18 @@ char *typeToStr(const TokenType tt) {
         case EOF_TOKEN:
             return "eof";
         default:
-            return "invalid";
+            break;
     }
+    if (tt > INT_START && tt < INT_END) {
+        return "integer";
+    }
+    if (tt > FLOAT_START && tt < FLOAT_END) {
+        return "float";
+    }
+    return "invalid";
 }
 
-static bool consumeWhitspace(Lexer *lexer) {
+static bool consumeWhitespace(Lexer *lexer) {
     char c;
     do {
         c = next(lexer);
@@ -85,7 +96,8 @@ static bool consumeWhitspace(Lexer *lexer) {
             lexer->currCol++;
         }
     } while (isspace(c) && c != EOF);
-    fseek(lexer->file, -1, SEEK_CUR);
+    backtrack(lexer, -1);
+    lexer->currCol--;
     if (c == EOF) {
         return true;
     }
@@ -105,7 +117,8 @@ static bool consumeComment(Lexer *lexer) {
     return false;
 }
 
-static bool consumeIdent(Lexer *lexer, Token *t, char first) {
+static bool consumeIdent(Lexer *lexer, Token *t) {
+    char first = next(lexer);
     char c;
     int i = 1; // already have 1 char
     int sizeOfStr = 32;
@@ -113,7 +126,7 @@ static bool consumeIdent(Lexer *lexer, Token *t, char first) {
     t->loc.line = lexer->currLine;
     t->loc.start = lexer->currCol; 
     str[0] = first; 
-    while (isalnum(c = next(lexer)) || c == '_') {
+    while (isalnum(c = peek(lexer)) || c == '_') {
         str[i] = c;
         ++i;
         if (i + 1 >= sizeOfStr) {
@@ -121,6 +134,7 @@ static bool consumeIdent(Lexer *lexer, Token *t, char first) {
             str = realloc(str, sizeOfStr);
         }
         lexer->currCol++;
+        next(lexer);
     }
     t->loc.end = lexer->currCol;
     str[i] = '\0';
@@ -140,7 +154,6 @@ static bool consumeIdent(Lexer *lexer, Token *t, char first) {
     if (c == EOF) {
         return true;
     }
-    fseek(lexer->file, -1, SEEK_CUR);
     return false;
 }
 
@@ -193,7 +206,8 @@ static char *singleCharBinOps = "+-/*^";
 static char *doubleCharBinOps = "+-&|=";
 static char *relationOps = "<>";
 
-static bool consumeOperator(Lexer *lexer, Token *t, char first) {
+static bool consumeOperator(Lexer *lexer, Token *t) {
+    char first = next(lexer);
     char *str = malloc(sizeof(char) * 3);
     t->type = INVALID;
     t->loc.line = lexer->currLine;
@@ -202,6 +216,7 @@ static bool consumeOperator(Lexer *lexer, Token *t, char first) {
     for (int i = 0; i < strlen(singleCharBinOps); ++i) {
         if (first == singleCharBinOps[i]) {
             t->type = BINARY_OP;
+            str[1] = '\0';
             break;
         }
     }
@@ -216,8 +231,11 @@ static bool consumeOperator(Lexer *lexer, Token *t, char first) {
                     t->type = UNARY_OP;
                     break;
                 }
+                t->type = BINARY_OP;
+                break;
             }
             t->type = BINARY_OP;
+            str[1] = '\0';
             break;
         }
     }
@@ -228,8 +246,11 @@ static bool consumeOperator(Lexer *lexer, Token *t, char first) {
                 str[1] = '=';
                 str[2] = '\0';
                 next(lexer);
+                t->type = BINARY_OP;
+                break;
             }
             t->type = BINARY_OP;
+            str[1] = '\0';
             break;
         }
     }
@@ -253,6 +274,7 @@ static bool consumeOperator(Lexer *lexer, Token *t, char first) {
         } else if (first == ']') {
             t->type = CLOSE_SPAREN;
         }
+        str[1] = '\0';
     }
 
     if (t->type == INVALID) {
@@ -262,10 +284,10 @@ static bool consumeOperator(Lexer *lexer, Token *t, char first) {
     return false;
 }
 
-static bool consumeNumber(Lexer *lexer, Token *t, char first) {
+static bool consumeNumber(Lexer *lexer, Token *t) {
     char c;
     bool isInt = true;
-    int currIdx = 1;
+    int currIdx = 0;
     int typeIdx = 0;
     int sizeOfStr = 32;
     char *str = malloc(sizeof(char) * sizeOfStr);
@@ -273,23 +295,25 @@ static bool consumeNumber(Lexer *lexer, Token *t, char first) {
     t->type = INVALID;
     t->loc.line = lexer->currLine;
     t->loc.start = lexer->currCol;
-    str[0] = first;
-    while ((c = next(lexer)) != EOF && (isdigit(c) || c == '.')) {
+    while ((c = peek(lexer)) != EOF && (isdigit(c) || c == '.')) {
         if (c == '.') {
             isInt = false;
         }
         str[currIdx] = c;
         ++currIdx;
         lexer->currCol++;
+        next(lexer);
     }
     str[currIdx] = '\0';
     if (c != EOF && (c == 'i' || c == 'u' || c == 'f')) {
+        next(lexer);
         typeAnnotation[typeIdx] = c;
         ++typeIdx;
-        while ((c = next(lexer)) != EOF && isdigit(c)) {
+        while ((c = peek(lexer)) != EOF && isdigit(c)) {
             typeAnnotation[typeIdx] = c;
             typeIdx++;
             lexer->currCol++;
+            next(lexer);
         }
         typeAnnotation[typeIdx] = '\0';
 
@@ -370,32 +394,34 @@ Token *lex(Lexer *lexer) {
     Token *toks = malloc(sizeof(Token) * numberTokens);
     Token *curr = toks;
     char c;
-    consumeWhitspace(lexer);
-    while ((c = next(lexer)) != EOF) {
+    consumeWhitespace(lexer);
+    while ((c = peek(lexer)) != EOF) {
         bool comment = false;
         if (currIdx >= numberTokens) {
             numberTokens *= 2;
             toks = realloc(toks, sizeof(Token) * numberTokens);
             curr = toks + currIdx;
         }
-
-        if (c == EOF) {
-            curr->type = EOF_TOKEN;
-            break;
-        } else if (isdigit(c)) {
-            TEST_ADD_EOF(consumeNumber(lexer, curr, c), curr, true);
+        TEST_ADD_EOF(consumeWhitespace(lexer), curr, true);
+        if (isdigit(c)) {
+            TEST_ADD_EOF(consumeNumber(lexer, curr), curr, true);
         } else if (c == '"') {
             TEST_ADD_EOF(consumeString(lexer, curr), curr, true);
         } else if (isalnum(c)) {
-            TEST_ADD_EOF(consumeIdent(lexer, curr, c), curr, true);
-        } else if (c == '/' && peek(lexer) == '/') {
-            TEST_ADD_EOF(consumeComment(lexer), curr, false);
-            comment = true;
+            TEST_ADD_EOF(consumeIdent(lexer, curr), curr, true);
+        } else if (c == '/') {
+            next(lexer);
+            if (peek(lexer) == '/') {
+                TEST_ADD_EOF(consumeComment(lexer), curr, false);
+                comment = true;
+            } else {
+                backtrack(lexer, -1);
+                TEST_ADD_EOF(consumeOperator(lexer, curr), curr, true);
+            }
         } else {
-            TEST_ADD_EOF(consumeOperator(lexer, curr, c), curr, true);
+            TEST_ADD_EOF(consumeOperator(lexer, curr), curr, true);
         }
-        //printf("%s %d\n", curr->value, curr->type);
-        TEST_ADD_EOF(consumeWhitspace(lexer), curr, true);
+        TEST_ADD_EOF(consumeWhitespace(lexer), curr, true);
         if (!comment) {
             ++currIdx;
             ++curr;

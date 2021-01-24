@@ -41,7 +41,7 @@ typedef enum {
     UINT32_LITERAL,
     UINT64_LITERAL,
     UNSIGNED_END,
-    INTE_END,
+    INT_END,
     // floats
     FLOAT_START,
     FLOAT_LITERAL,
