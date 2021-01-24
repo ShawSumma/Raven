@@ -1,0 +1,19 @@
+import stdio;
+
+func main(): void {
+    // lists are homogenous
+    var list = [1, 2, 3, 4] as i32;
+    // const lists can't be mutated
+    const cList = [1, 2, 3, 4] as i32;
+
+    list[1] = 5;
+    // cList[1] = 5; -- semantic error
+
+    for (var i in list.iter()) {
+        print(i)
+    }
+
+    var sum = list.foldl((i, acc) => {
+        i + acc
+    });
+}

@@ -1,0 +1,25 @@
+import stdio;
+
+class Greeter {
+    var person: string;
+    const world = "Hello ";
+
+    init() {
+        this.person = "World";
+    }
+
+    // automatically assigns arguments to the
+    // data members with the same name
+    // if no other operations need to be performed
+    // can be terminated with a semicolon
+    init(person: string);
+
+    greet(): void {
+        print(world, person);
+    }
+}
+
+func main(): void {
+    var robertGreeter = Greeter(person: "Robert");
+    robertGreeter.greet();
+}

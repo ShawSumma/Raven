@@ -1,0 +1,6 @@
+// can qualify an import using as
+import stdio as io;
+
+func main(): void {
+    io.print("Hello World!");
+}
