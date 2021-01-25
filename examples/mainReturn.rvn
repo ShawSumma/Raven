@@ -1,0 +1,7 @@
+import stdio;
+
+func main(): i32 {
+    print("Hello World!");
+    // 0 is returned by default if main returns void
+    return 2;
+}

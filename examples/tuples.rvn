@@ -1,0 +1,10 @@
+import stdio;
+
+func main(): void {
+    var pair = (1, 3.14); // tuples are heterogenous
+    var first = pair[0]; // access a member
+    // pair[0] = 3; -- tuples are immutable
+
+    // destructuring tuples
+    var (x, y) = (42, 3.0); // x: i32 and y: f64
+}
