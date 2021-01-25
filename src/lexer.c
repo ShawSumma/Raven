@@ -368,7 +368,8 @@ static bool consumeNumber(Lexer *lexer, Token *t) {
             t->type = INVALID;
         }
         free(typeAnnotation);
-        if (c == EOF) { 
+        if (c == EOF) {
+            free(str);
             return true;
         }
     } else {
@@ -378,10 +379,12 @@ static bool consumeNumber(Lexer *lexer, Token *t) {
                 t->type = INVALID;
             }
         } else {
+            printf("Hello World!\n");
             t->type = DOUBLE_LITERAL;
             t->f64 = atof(str);
         }
     }
+    free(str);
     if (c == EOF) {
         return true;
     }

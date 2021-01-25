@@ -16,6 +16,10 @@ int main(int argc, char *argv[]) {
                 printf("Line: %d:%d - %d // type: %s\n",
                 curr->loc.line, curr->loc.start,
                 curr->i32, typeToStr(curr->type));
+            } else if (curr->type > FLOAT_START && curr->type < FLOAT_END) {
+                printf("Line: %d:%d - %.1f // type: %s\n",
+                curr->loc.line, curr->loc.start,
+                curr->f64, typeToStr(curr->type));
             } else {
                 printf("Line: %d:%d - '%s' // type: %s\n",
                     curr->loc.line, curr->loc.start,
