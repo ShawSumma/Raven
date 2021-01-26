@@ -158,6 +158,7 @@ static bool consumeIdent(Lexer *lexer, Token *t) {
 }
 
 static bool consumeString(Lexer *lexer, Token *t) {
+    next(lexer);
     char c;
     int i = 0;
     int sizeOfStr = 32;

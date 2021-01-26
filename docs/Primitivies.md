@@ -27,4 +27,12 @@ Each primitive type in Raven alongside it's equivalent in C.
 * `String` ( `char*` )
 ---
 ## Interations between primitivies
-# 
+### Numeric <-> Numeric
+Numeric primitives can interact with each other but a warning will be presented to the user to inform them that there is a mismatch in the types but if the result of the interaction is not of the same type as a variable a semantic error will be raised.
+During an interaction between two numeric data types the smaller of the two will be cast to the size of the larger.
+#### Float <-> Integer
+Floats and integers must be cast to either or the other before an interaction will be viable.
+### Numeric <-> Pointers
+Unsure if pointer arithmetic will be used in Raven.
+### Numeric <-> Text
+Integers, both signed and unsigned can be used in the indexing of strins, or the manipulation of characters.
