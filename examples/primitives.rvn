@@ -25,3 +25,4 @@ func main(): void {
     var i = 1f32; // float
     var j = 1f64; // double
 }
+

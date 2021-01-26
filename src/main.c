@@ -17,24 +17,26 @@ int main(int argc, char *argv[]) {
             Lexer *lexer = createLexer(argv[2]);
             Token *toks = lex(lexer);
             Token *curr = toks;
+            size_t n = 0;
             while (curr->type != EOF_TOKEN) {
                 if (curr->type > INT_START && curr->type < INT_END) {
                     printf("Line: %d:%d - %d // type: %s\n",
-                    curr->loc.line, curr->loc.start,
-                    curr->i32, typeToStr(curr->type));
+                        curr->loc.line, curr->loc.start,
+                        curr->i32, typeToStr(curr->type));
                 } else if (curr->type > FLOAT_START && curr->type < FLOAT_END) {
                     printf("Line: %d:%d - %f // type: %s\n",
-                    curr->loc.line, curr->loc.start,
-                    curr->f64, typeToStr(curr->type));
+                        curr->loc.line, curr->loc.start,
+                        curr->f64, typeToStr(curr->type));
                 } else {
                     printf("Line: %d:%d - '%s' // type: %s\n",
                         curr->loc.line, curr->loc.start,
                         curr->value, typeToStr(curr->type));
                 }
-                if (curr->type == INVALID) break;
+                ++n;
                 ++curr;
             }
             destroyLexer(lexer);
+            destroyTokens(toks, n);
         }
     }
     return 0;

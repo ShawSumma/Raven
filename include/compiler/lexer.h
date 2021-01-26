@@ -26,6 +26,10 @@ typedef enum {
     IDENT,              
     KEYWORD,
     STRING_LITERAL,     // " "
+    DOC_STRING,         /* /// */
+    // ###############################
+    MEM_ALLOCED,
+    // ###############################
     CHAR_LITERAL,       // ' '
     INT_START,
     SIGNED_START,
@@ -47,7 +51,6 @@ typedef enum {
     FLOAT_LITERAL,
     DOUBLE_LITERAL,
     FLOAT_END,
-    DOC_STRING,         /* /// */
     EOF_TOKEN
 } TokenType;
 
@@ -93,6 +96,8 @@ Token *lex(Lexer *lexer);
 
 Lexer *createLexer(const char *fname);
 void destroyLexer(Lexer *lex);
+
+void destroyTokens(Token *tokens, size_t n);
 
 #ifdef __cplusplus
 }

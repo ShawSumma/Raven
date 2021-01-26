@@ -209,15 +209,15 @@ static char *relationOps = "<>";
 
 static bool consumeOperator(Lexer *lexer, Token *t) {
     char first = next(lexer);
-    char *str = malloc(sizeof(char) * 3);
+    t->value = malloc(sizeof(char) * 3);
     t->type = INVALID;
     t->loc.line = lexer->currLine;
     t->loc.start = lexer->currCol;
-    str[0] = first;
+    t->value[0] = first;
     for (int i = 0; i < strlen(singleCharBinOps); ++i) {
         if (first == singleCharBinOps[i]) {
             t->type = BINARY_OP;
-            str[1] = '\0';
+            t->value[1] = '\0';
             break;
         }
     }
@@ -225,8 +225,8 @@ static bool consumeOperator(Lexer *lexer, Token *t) {
         if (first == doubleCharBinOps[i]) {
             char n = peek(lexer);
             if (n == first) {
-                str[1] = n;
-                str[2] = '\0';
+                t->value[1] = n;
+                t->value[2] = '\0';
                 next(lexer);
                 if (n == '+' || n == '-') {
                     t->type = UNARY_OP;
@@ -236,7 +236,7 @@ static bool consumeOperator(Lexer *lexer, Token *t) {
                 break;
             }
             t->type = BINARY_OP;
-            str[1] = '\0';
+            t->value[1] = '\0';
             break;
         }
     }
@@ -244,14 +244,14 @@ static bool consumeOperator(Lexer *lexer, Token *t) {
         if (first == relationOps[i]) {
             char n = peek(lexer);
             if (n == '=') {
-                str[1] = '=';
-                str[2] = '\0';
+                t->value[1] = '=';
+                t->value[2] = '\0';
                 next(lexer);
                 t->type = BINARY_OP;
                 break;
             }
             t->type = BINARY_OP;
-            str[1] = '\0';
+            t->value[1] = '\0';
             break;
         }
     }
@@ -275,13 +275,13 @@ static bool consumeOperator(Lexer *lexer, Token *t) {
         } else if (first == ']') {
             t->type = CLOSE_SPAREN;
         }
-        str[1] = '\0';
+        t->value[1] = '\0';
     }
 
     if (t->type == INVALID) {
-        str[1] = '\0';
+        t->value[1] = '\0';
     }
-    t->value = str;
+    t->value = realloc(t->value, sizeof(char) * strlen(t->value));
     return false;
 }
 
@@ -368,7 +368,6 @@ static bool consumeNumber(Lexer *lexer, Token *t) {
         } else {
             t->type = INVALID;
         }
-        free(typeAnnotation);
         if (c == EOF) {
             free(str);
             return true;
@@ -385,6 +384,7 @@ static bool consumeNumber(Lexer *lexer, Token *t) {
             t->f64 = atof(str);
         }
     }
+    free(typeAnnotation);
     free(str);
     if (c == EOF) {
         return true;
@@ -431,22 +431,24 @@ Token *lex(Lexer *lexer) {
             ++curr;
         }
     }
-    ++currIdx;
-    toks = realloc(toks, sizeof(Token) * currIdx);
-    size_t len = strlen(lexer->filename);
+    if (!isspace(c)) {
+        ++currIdx;
+    }
+    toks = realloc(toks, sizeof(Token) * currIdx + 1);
+    toks[currIdx].type = EOF_TOKEN;
     for (int i = 0; i < currIdx; ++i) {
-        toks[i].loc.filename = malloc(sizeof(char) * len);
-        strcpy(toks[i].loc.filename, lexer->filename);
+        toks[i].loc.filename = lexer->filename;
     }
     return toks;
 }
 
 Lexer *createLexer(const char *fname) {
+    size_t len = strlen(fname);
     Lexer *lexer = malloc(sizeof(Lexer));
     lexer->currLine = 1;
     lexer->currCol = 1;
-    lexer->filename = malloc(sizeof(char) * strlen(fname));
-    strcpy(lexer->filename, fname);
+    lexer->filename = malloc(sizeof(char) * len + 1);
+    strncpy(lexer->filename, fname, len + 1);
     lexer->file = fopen(fname, "r");
     if (lexer->file == NULL) {
         fprintf(stderr, "Failed to open file '%s'\n", fname);
@@ -463,6 +465,19 @@ void destroyLexer(Lexer *lex) {
         free(lex);
         lex = NULL;
     }
+}
+
+static void destroyToken(Token *token) {
+    if (token->type < MEM_ALLOCED) {
+        free(token->value);
+    }
+}
+
+void destroyTokens(Token *tokens, size_t n) {
+    for (int i = 0; i < n; ++i) {
+        destroyToken(tokens + i);
+    }
+    free(tokens);
 }
 
 #ifdef __cplusplus
