@@ -1,6 +1,6 @@
 CC=gcc
 INCLUDES=-I./include
-CFLAGS=-g -Wall -pedantic
+CFLAGS=-g -Wall -pedantic -fcommon
 SRCDIR=./src
 OBJS=main.o lexer.o
 NAME=ravenc
