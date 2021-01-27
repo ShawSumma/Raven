@@ -30,6 +30,7 @@ typedef enum {
     // ###############################
     MEM_ALLOCED,
     // ###############################
+    FUNC_CALL,
     CHAR_LITERAL,       // ' '
     EOF_TOKEN,
     NUMBER_START,
@@ -53,7 +54,7 @@ typedef struct {
     char *filename;
 } SourceLoc;
 
-typedef struct {
+typedef struct _token {
     SourceLoc loc;
     TokenType type;
     union {
@@ -72,6 +73,11 @@ typedef struct {
             float  f32;
             double f64;
         };
+        struct _function {
+            char *name;
+            size_t nargs;
+            struct _token *args;
+        } function;
     };
 } Token;
 
@@ -90,6 +96,8 @@ Lexer *createLexer(const char *fname);
 void destroyLexer(Lexer *lex);
 
 void destroyTokens(Token *tokens, size_t n);
+
+void printFunc(Token *func);
 
 #ifdef __cplusplus
 }

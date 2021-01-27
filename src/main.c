@@ -30,6 +30,9 @@ int main(int argc, char *argv[]) {
                     printf("Line: %d:%d - %d // type: %s\n",
                         curr->loc.line, curr->loc.start,
                         curr->i32, typeToStr(curr->type));
+                } else if (curr->type == FUNC_CALL) {
+                    printFunc(curr);
+                    printf("\n");
                 } else {
                     printf("Line: %d:%d - '%s' // type: %s\n",
                         curr->loc.line, curr->loc.start,

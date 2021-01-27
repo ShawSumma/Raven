@@ -16,6 +16,10 @@ static bool isOperator(Token *token) {
     return token->type == BINARY_OP || token->type == UNARY_OP;
 }
 
+static bool isIdent(Token *token) {
+    return token->type == IDENT;
+}
+
 /// + - * /
 static uint8_t precedence[] = {
     1, 1, 2, 2
@@ -75,7 +79,7 @@ Ast *parse(Token *tokens) {
                 } while (op.type != INVALID);
             }
 
-        } else if (isNumber(curr)) {
+        } else if (isNumber(curr) || isIdent(curr)) {
             pushStack(outputStack, *curr);
         }
         ++curr;

@@ -20,6 +20,26 @@ extern "C" {
         break;                      \
     }
 
+static char *allOperators = "+-/*^&|=<>;:";
+static char *singleCharBinOps = "+-/*^";
+static char *doubleCharBinOps = "+-&|=";
+static char *relationOps = "<>";
+
+static bool isAnOperator(char c) {
+    for (int i = 0; i < strlen(allOperators); ++i) {
+        if (c == allOperators[i]) return true;
+    }
+    return false;
+}
+
+static bool consumeComment(Lexer *lexer);
+static bool consumeFunc(Lexer *lexer, Token *t);
+static bool consumeIdent(Lexer *lexer, Token *t);
+static bool consumeNumber(Lexer *lexer, Token *t);
+static bool consumeOperator(Lexer *lexer, Token *t);
+static bool consumeString(Lexer *lexer, Token *t);
+static bool consumeWhitespace(Lexer *lexer);
+
 static char *keywords[] = {
     "return", "while", "for", "as",
     "class", "var", "func", "import"
@@ -71,6 +91,8 @@ char *typeToStr(const TokenType tt) {
             return "string literal";
         case DOC_STRING:
             return "doc string";
+        case FUNC_CALL:
+            return "func call";
         case EOF_TOKEN:
             return "eof";
         default:
@@ -116,6 +138,86 @@ static bool consumeComment(Lexer *lexer) {
     return false;
 }
 
+static bool consumeFunc(Lexer *lexer, Token *t) {
+    if (consumeWhitespace(lexer)) {
+        return true;
+    }
+    int commaI = 0, argsI = 0;
+    int numberOfToksBetweenComma = 5; // how many tokens between ','
+    int numberOfArgs = 5; // how many args total
+    Token *args = malloc(sizeof(Token) * numberOfArgs);
+    Token *currArg = args;
+    Token *argsBetweenComma = malloc(sizeof(Token) * numberOfToksBetweenComma);
+    Token *currBetween = argsBetweenComma;
+    t->function.nargs = 0;
+    char c = next(lexer);
+    if (c == ')') {
+        free(argsBetweenComma);
+        free(args);
+        args = NULL;
+        t->function.args = NULL;
+    } else {
+        do {
+            if (isalnum(c)) {
+                backtrack(lexer, -1);
+                if (consumeIdent(lexer, currBetween)) {
+                    break;
+                }
+                ++commaI;
+                ++currBetween;
+            } else if (isdigit(c)) {
+                if (consumeNumber(lexer, currBetween)) {
+                    break;
+                }
+                ++commaI;
+                ++currBetween;
+            } else if (c == '"') {
+                if (consumeString(lexer, currBetween)) {
+                    break;
+                }
+                ++commaI;
+                ++currBetween;
+            } else if (isAnOperator(c)) {
+                if (consumeString(lexer, currBetween)) {
+                    break;
+                }
+                ++commaI;
+                ++currBetween;
+            } else if (c == ',') {
+                argsBetweenComma = realloc(argsBetweenComma, sizeof(Token) * commaI);
+                *currArg = *argsBetweenComma;
+                argsBetweenComma = malloc(sizeof(Token) * numberOfToksBetweenComma);
+                currBetween = argsBetweenComma;
+                commaI = 0;
+                ++currArg;
+                ++argsI;
+            } else if (c == ')') {
+                if (commaI > 0) {
+                    argsBetweenComma = realloc(argsBetweenComma, sizeof(Token) * (commaI + 1));
+                    *currArg = *argsBetweenComma;
+                    argsBetweenComma = malloc(sizeof(Token) * numberOfToksBetweenComma);
+                    currBetween = argsBetweenComma;
+                    commaI = 0;
+                    ++argsI;
+                    break;
+                }
+            }
+            if (consumeWhitespace(lexer)) {
+                break;
+            }
+        } while ((c = next(lexer)) != EOF);
+    }
+    if (args != NULL) {
+        args = realloc(args, sizeof(Token) * argsI);
+        t->function.args = args;
+        t->function.nargs = argsI;
+    }
+    if (peek(lexer) == EOF) {
+        return true;
+    }
+    return false;
+}
+
 static bool consumeIdent(Lexer *lexer, Token *t) {
     char first = next(lexer);
     char c;
@@ -147,8 +249,21 @@ static bool consumeIdent(Lexer *lexer, Token *t) {
         }
     }
     if (!found) {
-        t->type = IDENT;
-        t->value = str;
+        if (consumeWhitespace(lexer)) {
+            t->type = IDENT;
+            t->value = str;
+            return true;
+        } else {
+            if (peek(lexer) == '(') {
+                t->type = FUNC_CALL;
+                t->function.name = str;
+                next(lexer);
+                return consumeFunc(lexer, t);
+            } else {
+                t->type = IDENT;
+                t->value = str;
+            }
+        }
     }
     if (c == EOF) {
         return true;
@@ -201,10 +316,6 @@ static bool consumeString(Lexer *lexer, Token *t) {
     }
     return false;
 }
-
-static char *singleCharBinOps = "+-/*^";
-static char *doubleCharBinOps = "+-&|=";
-static char *relationOps = "<>";
 
 static bool consumeOperator(Lexer *lexer, Token *t) {
     char first = next(lexer);
@@ -420,7 +531,7 @@ Token *lex(Lexer *lexer) {
                 backtrack(lexer, -1);
                 TEST_ADD_EOF(consumeOperator(lexer, curr), curr, true);
             }
-        } else {
+        } else if (isAnOperator(c)) {
             TEST_ADD_EOF(consumeOperator(lexer, curr), curr, true);
         }
         TEST_ADD_EOF(consumeWhitespace(lexer), curr, true);
@@ -476,6 +587,21 @@ void destroyTokens(Token *tokens, size_t n) {
         destroyToken(tokens + i);
     }
     free(tokens);
+}
+
+void printFunc(Token *func) {
+    printf("%s(", func->function.name);
+        for (int i = 0; i < func->function.nargs; ++i) {
+            if (func->function.args[i].type == FUNC_CALL) {
+                printFunc(&func->function.args[i]);
+            } else {
+                printf("%s", func->function.args[i].value);
+            }
+            if (i + 1 < func->function.nargs) {
+                printf(", ");
+            }
+        }
+    printf(")");
 }
 
 #ifdef __cplusplus
