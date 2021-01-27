@@ -3,7 +3,7 @@ extern "C" {
 #endif
 
 #include "compiler/lexer.h"
-#include "util.h"
+#include "utils/utils.h"
 
 #include <ctype.h>
 #include <inttypes.h>
