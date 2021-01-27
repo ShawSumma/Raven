@@ -14,6 +14,4 @@ all: $(OBJS)
 .PHONY: clean
 clean:
 	rm -rf *.dSYM
-	rm -f *.o
-	rm -f $(NAME)
-	rm -f vgcore.*
+	rm -f *.o $(NAME) vgcore.* massif.*

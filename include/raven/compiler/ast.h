@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lexer.h"
+#include "raven/compiler/lexer.h"
 
 typedef struct _node {
     Token *value;

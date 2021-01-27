@@ -6,7 +6,7 @@
 #define stack(type)         \
     {                       \
         size_t capacity;    \
-        size_t len;         \
+        int len;            \
         type *objects;      \
     }
 
@@ -15,7 +15,7 @@
     name = malloc(sizeof(StackType));                   \
     name->capacity = cap;                               \
     name->len = 0;                                      \
-    name->objects = malloc(sizeof(ObjType) * cap)        
+    name->objects = calloc(cap, sizeof(ObjType))        
 
 #define pushStack(s, obj)                                                       \
     do {                                                                        \
@@ -25,6 +25,15 @@
         }                                                                       \
         s->objects[s->len] = obj;                                               \
         s->len++;                                                               \
+    } while(0)
+
+#define peekStack(s, varname, defaultValue)     \
+    do {                                        \
+        if (s->len - 1 >= 0) {                  \
+            varname = s->objects[s->len - 1];   \
+        } else {                                \
+            varname = defaultValue;             \
+        }                                       \
     } while(0)
 
 #define popStack(s, varname, defaultValue)      \

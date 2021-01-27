@@ -2,8 +2,8 @@
 extern "C" {
 #endif
 
-#include "compiler/lexer.h"
-#include "utils/utils.h"
+#include "raven/compiler/lexer.h"
+#include "raven/utils/utils.h"
 
 #include <ctype.h>
 #include <inttypes.h>
@@ -76,10 +76,9 @@ char *typeToStr(const TokenType tt) {
         default:
             break;
     }
-    if (tt > INT_START && tt < INT_END) {
+    if (tt > NUMBER_START && tt < FLOAT_START) {
         return "integer";
-    }
-    if (tt > FLOAT_START && tt < FLOAT_END) {
+    } else if (tt > FLOAT_START) {
         return "float";
     }
     return "invalid";
@@ -379,7 +378,6 @@ static bool consumeNumber(Lexer *lexer, Token *t) {
                 t->type = INVALID;
             }
         } else {
-            printf("Hello World!\n");
             t->type = DOUBLE_LITERAL;
             t->f64 = atof(str);
         }

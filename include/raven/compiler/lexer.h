@@ -31,27 +31,19 @@ typedef enum {
     MEM_ALLOCED,
     // ###############################
     CHAR_LITERAL,       // ' '
-    INT_START,
-    SIGNED_START,
+    EOF_TOKEN,
+    NUMBER_START,
     INT8_LITERAL,
     INT16_LITERAL,
     INT32_LITERAL,
     INT64_LITERAL,
-    SIGNED_END,
-    // unsigned
-    UNSIGNED_START,
     UINT8_LITERAL,
     UINT16_LITERAL,
     UINT32_LITERAL,
     UINT64_LITERAL,
-    UNSIGNED_END,
-    INT_END,
-    // floats
     FLOAT_START,
     FLOAT_LITERAL,
     DOUBLE_LITERAL,
-    FLOAT_END,
-    EOF_TOKEN
 } TokenType;
 
 typedef struct {
