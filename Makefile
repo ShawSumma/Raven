@@ -2,7 +2,7 @@ CC=gcc
 INCLUDES=-I./include
 CFLAGS=-g -Wall -pedantic -fcommon
 SRCDIR=./src
-OBJS=main.o lexer.o ast.o parser.o stack.o
+OBJS=main.o lexer.o ast.o parser.o
 NAME=ravenc
 
 %.o: $(SRCDIR)/%.c

@@ -40,17 +40,21 @@ int main(int argc, char *argv[]) {
             destroyLexer(lexer);
             destroyTokens(toks, n);
         } else if (strequ(argv[1], "--test-parser")) {
-            Lexer *lexer = createLexer(argv[2]);
-            Token *toks = lex(lexer);
+            //Lexer *lexer = createLexer(argv[2]);
+            //Token *toks = lex(lexer);
              
         }
     }
     if (strequ(argv[1], "--test-stack")) {
-        int i = 10;
-        Stack *stack = createStack(10, sizeof(int));
-        pushStack(stack, &i);
-        int *out = (int *)popStack(stack);
-        printf("%d\n", *out);
+        createStack(IntStack, stack, int, 1);
+        pushStack(stack, 10);
+        pushStack(stack, 20);
+        int out;
+        popStack(stack, out, -1);
+        printf("%d\n", out);
+        popStack(stack, out, -1);
+        printf("%d\n", out);
+        freeStack(stack);
     }
     // if (strequ(argv[1], "--test-ast")) {
     //     Node *n1 = malloc(sizeof(Node));
