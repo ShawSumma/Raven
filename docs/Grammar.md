@@ -62,7 +62,7 @@ else-if ::=
     else if (<expr>+) { <body>* }
 
 else ::=
-    else (<expr>+) { <body>* }
+    else { <body>* }
 
 conditional ::=
     if (<expr>+) { <body>* } <else-if>* <else>?

@@ -55,10 +55,6 @@ static Token *peekForward(Token *t) {
     return t + 1;
 }
 
-static Token *parseFuncArgs(Token *t) {
-
-} 
-
 Ast *parse(Token *tokens) {
     Token invalid;
     invalid.type = INVALID;
