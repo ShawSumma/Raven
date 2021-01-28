@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <string.h>
 #include <time.h>
 
@@ -12,9 +8,7 @@ extern "C" {
 
 #define SIZEOF_ARRAY(a) (sizeof(a)/sizeof(a[0]))
 
-#ifndef __cplusplus
 typedef char bool;
-#endif
 
 clock_t __start__, __end__;
 
@@ -33,7 +27,3 @@ clock_t __start__, __end__;
 #define TIME_ELAPSED (((double)__end__-__start__) / CLOCKS_PER_SEC)
 
 #define strequ(a, b) (strcmp(a, b) == 0)
-
-#ifdef __cplusplus
-}
-#endif

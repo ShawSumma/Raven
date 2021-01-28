@@ -79,7 +79,7 @@ Ast *parse(Token *tokens) {
                 } while (op.type != INVALID);
             }
 
-        } else if (isNumber(curr) || isIdent(curr)) {
+        } else if (isNumber(curr) || isIdent(curr) || curr->type == FUNC_CALL) {
             pushStack(outputStack, *curr);
         }
         ++curr;
@@ -97,6 +97,9 @@ Ast *parse(Token *tokens) {
             printf("%f ", tok.f64);
         } else if (tok.type > NUMBER_START) {
             printf("%d ", tok.i32);
+        } else if (tok.type == FUNC_CALL) {
+            printFunc(&tok);
+            printf(" ");
         } else {
             printf("%s ", tok.value);
         }

@@ -1,7 +1,3 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "raven/compiler/lexer.h"
 #include "raven/utils/utils.h"
 
@@ -579,6 +575,8 @@ void destroyLexer(Lexer *lex) {
 static void destroyToken(Token *token) {
     if (token->type < MEM_ALLOCED) {
         free(token->value);
+    } else if (token->type == FUNC_CALL) {
+        destroyTokens(token->function.args, token->function.nargs);
     }
 }
 
@@ -603,7 +601,3 @@ void printFunc(Token *func) {
         }
     printf(")");
 }
-
-#ifdef __cplusplus
-}
-#endif

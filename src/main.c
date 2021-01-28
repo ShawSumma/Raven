@@ -52,16 +52,5 @@ int main(int argc, char *argv[]) {
             destroyLexer(lexer);
         }
     }
-    if (strequ(argv[1], "--test-stack")) {
-        createStack(IntStack, stack, int, 5);
-        pushStack(stack, 10);
-        pushStack(stack, 20);
-        int out;
-        popStack(stack, out, -1);
-        printf("%d\n", out);
-        popStack(stack, out, -1);
-        printf("%d\n", out);
-        freeStack(stack);
-    }
     return 0;
 }

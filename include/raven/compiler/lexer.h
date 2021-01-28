@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stdio.h>
 
@@ -98,7 +94,3 @@ void destroyLexer(Lexer *lex);
 void destroyTokens(Token *tokens, size_t n);
 
 void printFunc(Token *func);
-
-#ifdef __cplusplus
-}
-#endif
