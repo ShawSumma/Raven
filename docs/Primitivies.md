@@ -26,7 +26,7 @@ Each primitive type in Raven alongside it's equivalent in C.
 * `char` ( `char` )
 * `string` ( `char*` )
 ---
-## Interations between primitivies
+## Interactions between primitivies
 ### Numeric <-> Numeric
 Numeric primitives can interact with each other but a warning will be presented to the user to inform them that there is a mismatch in the types but if the result of the interaction is not of the same type as a variable a semantic error will be raised.
 During an interaction between two numeric data types the smaller of the two will be cast to the size of the larger.
