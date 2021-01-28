@@ -16,7 +16,7 @@
         break;                      \
     }
 
-static char *allOperators = "+-/*^&|=<>;:()[]{}";
+static char *allOperators = "+-/*^&|=<>;:()[]{}.,~!";
 static char *singleCharBinOps = "+-/*^";
 static char *doubleCharBinOps = "+-&|=";
 static char *relationOps = "<>";

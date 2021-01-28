@@ -20,6 +20,10 @@ static bool isIdent(Token *token) {
     return token->type == IDENT;
 }
 
+static bool isString(Token *token) {
+    return token->type == STRING_LITERAL;
+}
+
 /// + - * /
 static uint8_t precedence[] = {
     1, 1, 2, 2
@@ -42,6 +46,18 @@ static uint8_t getPrecedence(Token *token) {
     }
     return -1;
 }
+
+static Token *peekBack(Token *t) {
+    return t - 1;
+}
+
+static Token *peekForward(Token *t) {
+    return t + 1;
+}
+
+static Token *parseFuncArgs(Token *t) {
+
+} 
 
 Ast *parse(Token *tokens) {
     Token invalid;
@@ -79,7 +95,7 @@ Ast *parse(Token *tokens) {
                 } while (op.type != INVALID);
             }
 
-        } else if (isNumber(curr) || isIdent(curr)) {
+        } else if (isNumber(curr) || isIdent(curr) || isString(curr)) {
             pushStack(outputStack, *curr);
         }
         ++curr;
