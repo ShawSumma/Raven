@@ -17,7 +17,7 @@
     }
 
 static char *allOperators = "+-/*^&|=<>;:()[]{}.,~!";
-static char *singleCharBinOps = "+-/*^";
+static char *singleCharBinOps = "+-/*^.";
 static char *doubleCharBinOps = "+-&|=";
 static char *relationOps = "<>";
 
@@ -270,7 +270,7 @@ static bool consumeOperator(Lexer *lexer, Token *t) {
         if (first == ',') {
             t->type = COMMA;
         } else if (first == ':') {
-            t->type = COMMA;
+            t->type = COLON;
         } else if (first == ';') {
             t->type = SEMICOLON;
         } else if (first == '(') {

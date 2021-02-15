@@ -122,3 +122,5 @@ massif.out.*
 # BBV output files
 bb.out
 bb.out.*
+
+testLexer

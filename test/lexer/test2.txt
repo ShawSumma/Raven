@@ -1,0 +1,5 @@
+import stdio as io;
+
+func main(): void {
+    io.print("Hello World!"); // test comment
+}
