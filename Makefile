@@ -13,12 +13,12 @@ all: $(OBJS)
 	$(CC) $(CFLAGS) -o $(NAME) $^ $(INCLUDES)
 
 test: $(TEST_OBJS)
-	$(CC) $(CFLAGS) -c ./test/lexer/lexerTest.c $(INCLUDES)
-	$(CC) $(CFLAGS) -o testLexer $(TEST_OBJS) lexerTest.o
-	./testLexer
+	@$(CC) $(CFLAGS) -c ./test/lexer/lexerTest.c $(INCLUDES)
+	@$(CC) $(CFLAGS) -o lexerTest $(TEST_OBJS) lexerTest.o
+	@./lexerTest
 
 .PHONY: clean
 clean:
 	rm -rf *.dSYM
 	rm -f *.o $(NAME) vgcore.* massif.*
-	rm -f testLexer
+	rm -f lexerTest

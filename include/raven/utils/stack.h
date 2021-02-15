@@ -49,5 +49,3 @@
 #define freeStack(s)    \
     free(s->objects);   \
     free(s);            \
-
-typedef struct stack(int) IntStack;

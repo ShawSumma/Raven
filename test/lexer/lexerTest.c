@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include "raven/compiler/parser.h"
 
@@ -143,7 +144,10 @@ void test2() {
 }
 
 int main(void) {
+    printf("Running Lexer Tests:\n");
     test1();
+    printf("test1: success\n");
     test2();
+    printf("test2: success\nLexer Tests Successful\n");
     return 0;
 }
