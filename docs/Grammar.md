@@ -24,7 +24,7 @@ binary-literal ::=
     ( 0b || 0B ) (0 || 1)+
 
 octal-literal ::=
-    0 [0-7]+
+    ( 0o || 0O ) [0-7]+
 
 ident ::=
     [a-zA-Z_] ( [a-zA-Z0-9_] )*

@@ -37,7 +37,8 @@ static bool consumeWhitespace(Lexer *lexer);
 
 static char *keywords[] = {
     "return", "while", "for", "as",
-    "class", "var", "func", "import"
+    "class", "var", "func", "import",
+    "let"
 };
 
 static char peek(Lexer *lex) {
