@@ -53,10 +53,35 @@ function-call ::=
 method-call ::=
     (( this || <ident> ) .)+ <function-call>
 
+loop ::=
+    <for-loop> || <foreach-loop> || <while-loop> ||
+    <dowhile-loop>
+
+for-loop ::=
+    for ( (<ident> <ident> = <expr>)? ; <expr>* ; <expr>* ) {
+        <body>
+    }
+
+foreach-loop ::=
+    foreach ( <ident> <ident> : <ident> ) {
+        <body>
+    }
+
+while-loop ::=
+    while (<expr>*) {
+        <body>
+    }
+
+dowhile-loop ::=
+    do {
+        <body>
+    } while(<expr>*);
+
 body ::=
     ( <conditioal> || <variable-definition> ; || 
     <function-call> ; || <method-call> ; ||
-    <return-statement> ; || <expr> ; )*
+    <loop> || <return-statement> ; ||
+    expr> ; )*
 
 else-if ::=
     else if (<expr>+) { <body>* }

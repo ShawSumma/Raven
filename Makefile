@@ -21,3 +21,4 @@ test: $(TEST_OBJS)
 clean:
 	rm -rf *.dSYM
 	rm -f *.o $(NAME) vgcore.* massif.*
+	rm -f testLexer
