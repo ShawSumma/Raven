@@ -10,3 +10,6 @@ typedef struct _node {
 typedef struct {
     Node *root;
 } Ast;
+
+Node *createNode(Token *tok, Node *left, Node *right);
+void printNodes(Node *root, int depth);

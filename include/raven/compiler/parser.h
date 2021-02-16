@@ -6,7 +6,8 @@
 #include "raven/utils/utils.h"
 
 typedef struct stack(Token) TokenStack;
+typedef struct stack(Node) NodeStack;
 typedef TokenStack OperatorStack;
-typedef TokenStack OutputStack;
+typedef NodeStack OutputStack;
 
 Ast *parse(Token *tokens);

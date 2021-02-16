@@ -14,9 +14,11 @@ In Raven these expressions are transformed into reverse polish notation (postfix
 
 In RPN there is no need for parentheses as each binay operator can only act on the previous two entries.
 
-This process creates an Abstract Syntax Tree representation of the expression as it encounters new nodes. 
+This process creates an Abstract Syntax Tree representation of the expression as it encounters new nodes.
 
 ## Expressions involving assignment
 An assignment in Raven is signified by an assignment operator (e.g. `=`, `+=`, `-=`). The expression has two halves, a Left Hand Side and a Right Hand Side. On the LHS of an assignment is generally an identifer or memory location of which to store or mutate data as needed. On the RHS is usually an expression that may resemble the example given in the previous section.
 
 As these expressions are split in two and one side having a well defined process for transformation, they could be split at the assignment operator with a indentifer or variable declation on the left and the AST generated from the section previous.
+
+##

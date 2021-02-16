@@ -61,10 +61,11 @@ static Ast *parseFuncArgs(Token *t) {
 
 Ast *parse(Token *tokens) {
     Token invalid;
+    Node invalidNode;
     invalid.type = INVALID;
     Ast *out = malloc(sizeof(Ast));
     createStack(OperatorStack, operatorStack, Token, 10);
-    createStack(OutputStack, outputStack, Token, 20);
+    createStack(OutputStack, outputStack, Node, 20);
     Token *curr = tokens;
     int isParen = 0;
     while (curr->type != EOF_TOKEN) {
@@ -72,13 +73,18 @@ Ast *parse(Token *tokens) {
             Token op;
             peekStack(operatorStack, op, invalid);
             if (op.type != INVALID && op.type != OPEN_PAREN && (getPrecedence(curr) <= getPrecedence(&op))) {
-                do {
+                while (op.type != INVALID && op.type != OPEN_PAREN && (getPrecedence(curr) <= getPrecedence(&op))) {
                     popStack(operatorStack, op, invalid);
-                    pushStack(outputStack, op);
+                    Node left, right;
+                    popStack(outputStack, right, invalidNode);
+                    popStack(outputStack, left, invalidNode);
+                    pushStack(outputStack, *createNode(&op, &left, &right));
                     peekStack(operatorStack, op, invalid);
-                } while (op.type != INVALID && op.type != OPEN_PAREN && (getPrecedence(curr) <= getPrecedence(&op)));
+                }
             }
-            pushStack(operatorStack, *curr);
+            if (curr->type != EOF_TOKEN) {
+                pushStack(operatorStack, *curr);
+            }
         } else if (curr->type == OPEN_PAREN) {
             pushStack(operatorStack, *curr);
             ++isParen;
@@ -90,33 +96,32 @@ Ast *parse(Token *tokens) {
                     if (op.type == OPEN_PAREN) {
                         break;
                     }
-                    pushStack(outputStack, op);
+                    Node left, right;
+                    popStack(outputStack, right, invalidNode);
+                    popStack(outputStack, left, invalidNode);
+                    pushStack(outputStack, *createNode(&op, &left, &right));
                     peekStack(operatorStack, op, invalid);
-                } while (op.type != INVALID);
+                } while (op.type != INVALID && op.type != EOF_TOKEN);
+                --isParen;
             }
 
         } else if (isNumber(curr) || isIdent(curr) || isString(curr)) {
-            pushStack(outputStack, *curr);
+            pushStack(outputStack, *createNode(curr, NULL, NULL));
         }
         ++curr;
     }
     Token op;
     popStack(operatorStack, op, invalid);
-    do {
-        pushStack(outputStack, op);
+    while(op.type != INVALID && op.type != EOF_TOKEN) {
+        Node left, right;
+        popStack(outputStack, right, invalidNode);
+        popStack(outputStack, left, invalidNode);
+        pushStack(outputStack, *createNode(&op, &left, &right));
         popStack(operatorStack, op, invalid);
-    } while(op.type != INVALID);
-
-    for (int i = 0; i < outputStack->len; ++i) {
-        Token tok = outputStack->objects[i];
-        if (tok.type > FLOAT_START) {
-            printf("%f ", tok.f64);
-        } else if (tok.type > NUMBER_START) {
-            printf("%d ", tok.i32);
-        } else {
-            printf("%s ", tok.value);
-        }
     }
-    printf("\n");
+
+    Node final;
+    popStack(outputStack, final, invalidNode);
+    printNodes(&final, 0);
     return out;
 }
