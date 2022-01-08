@@ -36,7 +36,7 @@ Numeric data types cannot interact with a boolean, there is no viable way to con
 ### Numeric ⟷ Pointers
 Unsure if pointer arithmetic will be used in Raven.
 ### Numeric ⟷ Text
-Integers, both signed and unsigned can be used in the indexing of strins, or the manipulation of characters.
+Integers, both signed and unsigned can be used in the indexing of strings, or the manipulation of characters.
 ### Booelan ⟷ Pointers
 A boolean to pointer interaction results in a compile time error the two concepts are too far apart to justify behaviour, undefined or otherwise.
 ### Boolean ⟷ Text
